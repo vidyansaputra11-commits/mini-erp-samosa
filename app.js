@@ -26,7 +26,36 @@ let db=load();
 let active='dashboard';
 let currentReport=[];
 function cloneSeed(){return JSON.parse(JSON.stringify(seed))}
-function load(){try{let base=cloneSeed(),raw=JSON.parse(localStorage.getItem(DBKEY)||'{}'),out=Object.assign(base,raw,{fgStock:Object.assign(base.fgStock,raw.fgStock||{})});out.products=(out.products||[]).map(p=>Object.assign({unit:'pcs',packSize:10},p,{packSize:Number(p.packSize)||10,priceRegularPack:Number(p.priceRegularPack)||((Number(p.priceRegular)||0)*(Number(p.packSize)||10)),priceResellerPack:Number(p.priceResellerPack)||((Number(p.priceReseller)||0)*(Number(p.packSize)||10))}));return out}catch(e){return cloneSeed()}}
+function load(){
+ try{
+  const base=cloneSeed();
+  const raw=JSON.parse(localStorage.getItem(DBKEY)||'{}')||{};
+  const out=Object.assign(base,raw);
+  out.products=Array.isArray(raw.products)?raw.products:base.products;
+  out.materials=Array.isArray(raw.materials)?raw.materials:base.materials;
+  out.packaging=Array.isArray(raw.packaging)?raw.packaging:base.packaging;
+  out.orders=Array.isArray(raw.orders)?raw.orders:[];
+  out.materialTx=Array.isArray(raw.materialTx)?raw.materialTx:[];
+  out.packagingTx=Array.isArray(raw.packagingTx)?raw.packagingTx:[];
+  out.productions=Array.isArray(raw.productions)?raw.productions:[];
+  out.fgStock=Object.assign({},base.fgStock,(raw.fgStock&&typeof raw.fgStock==='object')?raw.fgStock:{});
+  out.products=out.products.map(p=>{
+   const packSize=Math.max(1,Number(p?.packSize)||1);
+   const reg=Number(p?.priceRegular)||0, res=Number(p?.priceReseller)||0;
+   return Object.assign({unit:'pcs',hpp:0,minStock:0},p||{}, {
+    packSize,
+    priceRegular:reg,
+    priceReseller:res,
+    priceRegularPack:Number(p?.priceRegularPack)||reg*packSize,
+    priceResellerPack:Number(p?.priceResellerPack)||res*packSize
+   });
+  });
+  out.materials=out.materials.map(x=>Object.assign({unit:'pcs',stock:0,avgCost:0,minStock:0},x||{}));
+  out.packaging=out.packaging.map(x=>Object.assign({type:'INNER',unit:'pcs',stock:0,avgCost:0,minStock:0},x||{}));
+  out.orders=out.orders.map(o=>Object.assign({status:'BARU',items:[]},o||{}, {items:Array.isArray(o?.items)?o.items:[]}));
+  return out;
+ }catch(e){console.error('Load DB gagal, memakai seed.',e);return cloneSeed()}
+}
 function save(){localStorage.setItem(DBKEY,JSON.stringify(db));render(active)}
 const pages=[
  ['dashboard','⌂','Home'],['order','🧾','Order'],['material','🥩','Raw Material'],['packaging','📦','Packaging'],
@@ -53,6 +82,34 @@ window.printOutstanding=()=>{
  const rows=outstandingByProduct();
  const totalNeed=rows.reduce((s,x)=>s+x.need,0);
  printWindow('Outstanding Produksi',`<h2>OUTSTANDING PRODUKSI</h2><div class="muted">Tanggal cetak: ${new Date().toLocaleString('id-ID')}</div><div class="summary"><div class="box"><b>${openOrders().length}</b>Order aktif</div><div class="box"><b>${rows.filter(x=>x.need>0).length}</b>Produk perlu produksi</div><div class="box"><b>${fmt(totalNeed)}</b>Total qty perlu produksi</div></div><table><thead><tr><th>Produk</th><th class="num">Order</th><th class="num">Stok FG</th><th class="num">Perlu</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x.product.name)}</td><td class="num">${fmt(x.orderQty)}</td><td class="num">${fmt(x.stock)}</td><td class="num"><b>${fmt(x.need)}</b></td></tr>`).join('')}</tbody></table>`, 'thermal')
+}
+
+
+function renderDashboard(){
+ const out=outstandingByProduct();
+ const activeOrders=openOrders();
+ const needCount=out.filter(x=>x.need>0).length;
+ const criticalRM=db.materials.filter(x=>Number(x.stock||0)<=Number(x.minStock||0)).length;
+ const criticalPK=db.packaging.filter(x=>Number(x.stock||0)<=Number(x.minStock||0)).length;
+ const criticalFG=db.products.filter(p=>Number(db.fgStock[p.id]||0)<=Number(p.minStock||0)).length;
+ const completed=db.orders.filter(o=>o.status==='SELESAI');
+ const sales=completed.reduce((s,o)=>s+orderTotals(o).subtotal,0);
+ const profit=completed.reduce((s,o)=>s+orderTotals(o).profit,0);
+ const prodQty=db.productions.reduce((s,p)=>s+Number(p.qty||0),0);
+ const rows=out.map(x=>`<tr><td>${esc(x.product.name)}</td><td class="num">${fmt(x.orderQty)}</td><td class="num">${fmt(x.stock)}</td><td class="num"><b>${fmt(x.need)}</b></td></tr>`).join('');
+ $('#dashboard').innerHTML=`
+  <div class="grid3">
+   <div class="kpi"><b>${activeOrders.length}</b><span>Order aktif</span></div>
+   <div class="kpi"><b>${needCount}</b><span>Produk perlu produksi</span></div>
+   <div class="kpi"><b>${criticalRM+criticalPK+criticalFG}</b><span>Item stok kritis</span></div>
+   <div class="kpi"><b>${money(sales)}</b><span>Total penjualan selesai</span></div>
+   <div class="kpi"><b>${money(profit)}</b><span>Total profit kotor</span></div>
+   <div class="kpi"><b>${fmt(prodQty)}</b><span>Total hasil produksi</span></div>
+  </div>
+  <div class="card" style="margin-top:12px">
+   <div class="cardhead"><h2>Outstanding Produksi</h2><button class="btn secondary smallbtn no-print" onclick="printOutstanding()">🖨 Print</button></div>
+   <div class="tablewrap autofit compact"><table><thead><tr><th>Produk</th><th class="num">Order Aktif</th><th class="num">Stok FG</th><th class="num">Perlu Produksi</th></tr></thead><tbody>${rows||'<tr><td colspan="4" class="empty">Belum ada master produk</td></tr>'}</tbody></table></div>
+  </div>`;
 }
 
 function renderOrder(){
