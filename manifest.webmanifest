@@ -1,7 +1,7 @@
 {
-  "name": "SAMOSA MOMCIP",
+  "name": "CEMILAN MOMCIP",
   "short_name": "MOMCIP",
-  "description": "Order, produksi, stok, raw material, packaging, penjualan dan profit Samosa Momcip",
+  "description": "Order, produksi, stok, raw material, packaging, penjualan dan profit Cemilan Momcip",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

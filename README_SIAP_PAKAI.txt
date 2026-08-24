@@ -1,50 +1,24 @@
-MINI ERP PRODUKSI & PENJUALAN - PWA SIAP PAKAI
-================================================
+CEMILAN MOMCIP WEBAPP V3
 
-FITUR UTAMA
-- Rekap order masuk
-- Jenis order REGULER / RESELLER dengan harga berbeda
-- Print struk order
-- Pembelian & pemakaian Raw Material
-- Pembelian & pemakaian Packaging INNER / OUTER
-- Input hasil produksi & reject
-- Stok Raw Material, Packaging, Finish Good
-- Outstanding produksi otomatis dari order aktif vs stok FG
-- Laporan penjualan
-- Laporan HPP & profit kotor
-- Print laporan
-- Backup / restore data JSON
-- Offline-first setelah pertama kali dibuka melalui HTTPS
+Revisi utama:
+- Branding: CEMILAN MOMCIP / Homemade Snack & Drink With Love
+- Logo dipertahankan
+- Tabel operasional dibuat fit-to-content
+- Printer thermal 57 / 75 / 80 mm untuk struk dan outstanding produksi
+- Logo tampil pada struk
+- Laporan layar: detail penjualan per tanggal, tanpa detail nomor order
+- Print Ringkasan YTD/MTD: ringkasan per produk YTD & MTD + grafik penjualan
+- Print Detail Penjualan: detail per tanggal dan produk
+- Ringkasan YTD & grafik hanya tampil pada hasil print
+- Master item tetap dapat dihapus jika belum memiliki transaksi/stok
 
-CARA TRIAL DI LAPTOP
-1. Ekstrak ZIP.
-2. Buka folder MINI_ERP_WEBAPP_READY.
-3. Klik dua kali index.html.
-4. Input master produk, raw material, dan packaging pada menu Master.
-CATATAN: mode file lokal bisa dipakai untuk trial, tetapi fitur install/offline PWA penuh membutuhkan HTTPS.
+UPDATE GITHUB PAGES:
+Upload/replace seluruh file ke repository mini-erp-samosa pada branch main.
+GitHub Pages akan deploy ulang otomatis. Jika tampilan lama masih muncul, refresh/clear cache atau tunggu service worker V3 aktif.
 
-CARA PAKAI DI ANDROID SEPERTI APLIKASI
-1. Upload seluruh isi folder ini ke hosting HTTPS (contoh: Netlify / GitHub Pages).
-2. Buka URL hasil hosting memakai Chrome di Android.
-3. Tekan tombol INSTALL di bagian atas aplikasi, atau menu Chrome > Tambahkan ke layar utama / Install app.
-4. Setelah terpasang, aplikasi muncul di Home Screen.
-
-DATA
-- Data tersimpan lokal di browser/perangkat yang digunakan.
-- Lakukan Backup Data secara berkala melalui menu Master.
-- Jika ganti HP/browser, lakukan Restore dari file backup JSON.
-- Versi ini belum memakai database cloud/multi-user.
-
-URUTAN PEMAKAIAN YANG DISARANKAN
-1. Master: sesuaikan produk dan harga Reguler/Reseller.
-2. Master: tambah Raw Material dan Packaging.
-3. Raw Material / Packaging: input pembelian awal agar stok tersedia.
-4. Order: input pesanan pelanggan.
-5. Dashboard: lihat outstanding produksi.
-6. Produksi: input hasil produksi.
-7. Order: klik Selesai setelah stok FG cukup, lalu Print Struk.
-8. Laporan: filter periode dan Print Laporan.
-9. Master: Backup Data secara berkala.
-
-VERSI
-Ready Trial v2 - 24 Agustus 2026
+UPDATE V4
+- Input Order sekarang memiliki UNIT: PCS / PACK.
+- Konversi PACK ke PCS berdasarkan Isi/Pack pada Master Produk.
+- Harga Reguler dan Reseller dapat dibedakan per PCS dan per PACK.
+- Stok FG, outstanding produksi, dan HPP tetap dihitung menggunakan PCS sebagai unit dasar.
+- Struk menampilkan Qty sesuai unit order, contoh 5 PACK (50 pcs).
