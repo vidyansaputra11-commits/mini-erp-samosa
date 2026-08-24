@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <title>Mini ERP Produksi</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <style>
+    :root{--bg:#f3f4f6;--card:#fff;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--accent:#111827;--ok:#166534;--warn:#92400e;--bad:#991b1b}
+    *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+    header{position:sticky;top:0;z-index:20;background:var(--accent);color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px #0002}
+    header h1{font-size:18px;margin:0}.wrap{max-width:980px;margin:auto;padding:12px 12px 92px}
+    .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}.tabs button,.btn{border:0;border-radius:10px;padding:11px 12px;font-weight:700;cursor:pointer}
+    .tabs button{background:#fff;color:#374151;border:1px solid var(--line)}.tabs button.active{background:#111827;color:#fff}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px #0001}.card h2{font-size:17px;margin:0 0 10px}.card h3{font-size:15px;margin:10px 0}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.kpi{padding:12px;border-radius:12px;background:#f9fafb;border:1px solid var(--line)}.kpi b{font-size:20px;display:block}.kpi span{font-size:12px;color:var(--muted)}
+    label{font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px}input,select,textarea{width:100%;padding:10px;border-radius:9px;border:1px solid #d1d5db;background:#fff;font:inherit}textarea{min-height:76px}
+    .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:10px}.row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px}.full{grid-column:1/-1}
+    .btn{background:#111827;color:#fff}.btn.secondary{background:#e5e7eb;color:#111827}.btn.danger{background:#991b1b}.btn.ok{background:#166534}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.actions .btn{flex:1}
+    table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-size:11px;text-transform:uppercase;color:#6b7280}.num{text-align:right}.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#e5e7eb;font-size:11px;font-weight:700}.badge.reg{background:#dbeafe}.badge.res{background:#fef3c7}.badge.bad{background:#fee2e2;color:#991b1b}.badge.ok{background:#dcfce7;color:#166534}
+    .section{display:none}.section.active{display:block}.small{font-size:12px;color:var(--muted)}.empty{padding:18px;text-align:center;color:var(--muted)}
+    .bottomnav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);z-index:30}.bottomnav button{border:0;background:#fff;padding:10px 4px;font-size:11px;color:#4b5563}.bottomnav button.active{font-weight:800;color:#111827}
+    @media(min-width:760px){.bottomnav{display:none}.wrap{padding-bottom:20px}.tabs{grid-template-columns:repeat(8,1fr)}}
+    @media(max-width:640px){.grid3,.row3{grid-template-columns:1fr 1fr}.hide-mobile{display:none} table{font-size:12px}th,td{padding:7px 4px}}
+    @media print{header,.tabs,.bottomnav,.no-print{display:none!important}.wrap{padding:0}.card{border:0;box-shadow:none}.print-only{display:block!important}body{background:#fff}}
+    .print-only{display:none}
+  </style>
+</head>
+<body>
+<header><div><h1>Mini ERP Produksi</h1><div class="small" style="color:#d1d5db">Order • Produksi • Stok • Profit</div></div><div style="display:flex;gap:8px;align-items:center"><button id="installBtn" class="btn secondary" style="display:none;padding:8px 10px">Install</button><span id="clock" class="small" style="color:#d1d5db"></span></div></header>
+<div class="wrap">
+  <div class="tabs no-print" id="tabs"></div>
+
+  <section id="dashboard" class="section active"></section>
+  <section id="order" class="section"></section>
+  <section id="material" class="section"></section>
+  <section id="packaging" class="section"></section>
+  <section id="production" class="section"></section>
+  <section id="stock" class="section"></section>
+  <section id="reports" class="section"></section>
+  <section id="settings" class="section"></section>
+</div>
+<div class="bottomnav no-print" id="bottomnav"></div>
+<script src="app.js"></script>
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
+let deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;const b=document.getElementById('installBtn');if(b)b.style.display='inline-block';});
+document.addEventListener('click',async e=>{if(e.target?.id==='installBtn'&&deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;e.target.style.display='none';}});
+window.addEventListener('appinstalled',()=>{const b=document.getElementById('installBtn');if(b)b.style.display='none';});
+</script>
+</body>
+</html>
